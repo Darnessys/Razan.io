@@ -14,7 +14,7 @@
             font-family: 'Segoe UI', sans-serif;
             user-select: none;
             -webkit-user-select: none;
-            overscroll-behavior-y: contain; 
+            overscroll-behavior-y: contain; /* منع ريفريش الصفحة نهائياً */
             touch-action: none; 
         }
         
@@ -65,7 +65,7 @@
 
     let snakeX = 0;
     let snakeY = 0;
-    let snakeAngle = 0; // الزاوية الحالية للتعبان
+    let snakeAngle = 0; 
     let pulseTime = 0;
 
     let snake = [];
@@ -88,44 +88,48 @@
         });
     }
 
-    // 🕹️ منطق التوجيه بالسحب الحر (Relative Touch/Mouse Drag)
-    let isDragging = false;
-    let lastInputX = 0;
-    let lastInputY = 0;
+    // 🕹️ برمجة الـ Virtual Joystick الديناميكي المتطور
+    let isTouching = false;
+    let joyStartX = 0; // مركز الـ Joystick الخفي (X)
+    let joyStartY = 0; // مركز الـ Joystick الخفي (Y)
+    const MAX_JOY_RADIUS = 40; // أقصى مسافة لحركة الصباع لقفل الزاوية بنعومة
 
-    // عند الضغط (حطيت صباعك في أي مكان)
     window.addEventListener("pointerdown", (e) => {
-        isDragging = true;
-        // بنثبت نقطة الارتكاز اللحظية هنا مكان ما ضغطت بالظبط
-        lastInputX = e.clientX;
-        lastInputY = e.clientY;
+        isTouching = true;
+        // تثبيت مركز دايرة التحكم الخفية في مكان ما حطيت صباعك بالظبط
+        joyStartX = e.clientX;
+        joyStartY = e.clientY;
     });
 
-    // عند السحب (حركت صباعك لتوجيه التعبان)
     window.addEventListener("pointermove", (e) => {
-        if (!isDragging) return;
+        if (!isTouching) return;
 
-        // حساب اتجاه ومقدار السحبة مقارنة بآخر نقطة
-        let dx = e.clientX - lastInputX;
-        let dy = e.clientY - lastInputY;
+        // حساب المسافة بين صباعك الحالي ومركز التحكم الخفي
+        let dx = e.clientX - joyStartX;
+        let dy = e.clientY - joyStartY;
+        let distance = Math.hypot(dx, dy);
 
-        // لو صباعك تحرك حتة صغيرة جداً (أكبر من 2 بكسل) بنلقط الاتجاه فوراً
-        if (Math.hypot(dx, dy) > 2) {
-            // تحديث زاوية التعبان بناءً على "اتجااااه السحبة" وليس مكان الشاشة!
+        // لو تحركت مسافة معقولة (لتجنب هزات اليد الخفيفة والرعشة)
+        if (distance > 5) {
+            // توجيه التعبان بنعومة تامة بناءً على زاوية السحب من المركز
             snakeAngle = Math.atan2(dy, dx);
 
-            // جعل نقطة الارتكاز تتحرك مع صباعك بسلاسة مريحة جداً
-            lastInputX = e.clientX;
-            lastInputY = e.clientY;
+            // 🌟 السحر كله هنا (Dynamic Anchor Drag):
+            // لو صباعك بعد عن المركز بمسافة أكبر من اللازم، بنسحب المركز وراه
+            // الحركة دي بتخلي التوجيه مستمر ومطيع جداً حتى لو فضلت ساحب صباعك لآخر الشاشة
+            if (distance > MAX_JOY_RADIUS) {
+                let angle = Math.atan2(dy, dx);
+                joyStartX = e.clientX - Math.cos(angle) * MAX_JOY_RADIUS;
+                joyStartY = e.clientY - Math.sin(angle) * MAX_JOY_RADIUS;
+            }
         }
     });
 
-    // عند رفع الصباع
     window.addEventListener("pointerup", () => {
-        isDragging = false;
+        isTouching = false;
     });
     window.addEventListener("pointercancel", () => {
-        isDragging = false;
+        isTouching = false;
     });
 
     function draw() {
@@ -138,7 +142,7 @@
         let centerX = canvas.width / 2;
         let centerY = canvas.height / 2;
 
-        // التعبان مكمل في طريقه وزاويته بثبات مستني توجيهك الجديد
+        // التعبان يسير بسلاسة تامة وانسيابية في اتجاه الزاوية المحددة وثابت في خطه مستني توجيهك
         snakeX += Math.cos(snakeAngle) * speed;
         snakeY += Math.sin(snakeAngle) * speed;
 
