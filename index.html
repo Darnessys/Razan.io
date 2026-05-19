@@ -14,8 +14,6 @@
             font-family: 'Segoe UI', sans-serif;
             user-select: none;
             -webkit-user-select: none;
-            
-            /* 🌟 الحل النهائي والوحيد لقفل ريفريش المتصفح عند السحب لتحت */
             overscroll-behavior-y: contain; 
             touch-action: none; 
         }
@@ -67,7 +65,7 @@
 
     let snakeX = 0;
     let snakeY = 0;
-    let snakeAngle = 0; 
+    let snakeAngle = 0; // الزاوية الحالية للتعبان
     let pulseTime = 0;
 
     let snake = [];
@@ -90,31 +88,44 @@
         });
     }
 
-    // المتغيرات الأصلية للحركة المطيعة ورا الماوس
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight / 2;
-    let isPointerDown = false; // لمتابعة هل صباعك على الشاشة ولا متشال
+    // 🕹️ منطق التوجيه بالسحب الحر (Relative Touch/Mouse Drag)
+    let isDragging = false;
+    let lastInputX = 0;
+    let lastInputY = 0;
 
-    // لما تلمس الشاشة لأول مرة
+    // عند الضغط (حطيت صباعك في أي مكان)
     window.addEventListener("pointerdown", (e) => {
-        isPointerDown = true;
-        // 🌟 السحر هنا: بنقول للعبة اعتبري مكان التعبان الحالي هو السنتر، عشان ما ينطش فجأة لمكان صباعك الجديد
-        targetX = window.innerWidth / 2;
-        targetY = window.innerHeight / 2;
+        isDragging = true;
+        // بنثبت نقطة الارتكاز اللحظية هنا مكان ما ضغطت بالظبط
+        lastInputX = e.clientX;
+        lastInputY = e.clientY;
     });
 
-    // الحركة ورا الماوس أو اللمس بسلاسة 100%
+    // عند السحب (حركت صباعك لتوجيه التعبان)
     window.addEventListener("pointermove", (e) => {
-        // لو مش دايس (في الموبايل مثلاً شلت صباعك) ما يغيرش الأهداف ويفضل ماشي في حاله
-        if (!isPointerDown && e.pointerType === 'touch') return; 
-        
-        targetX = e.clientX;
-        targetY = e.clientY;
+        if (!isDragging) return;
+
+        // حساب اتجاه ومقدار السحبة مقارنة بآخر نقطة
+        let dx = e.clientX - lastInputX;
+        let dy = e.clientY - lastInputY;
+
+        // لو صباعك تحرك حتة صغيرة جداً (أكبر من 2 بكسل) بنلقط الاتجاه فوراً
+        if (Math.hypot(dx, dy) > 2) {
+            // تحديث زاوية التعبان بناءً على "اتجااااه السحبة" وليس مكان الشاشة!
+            snakeAngle = Math.atan2(dy, dx);
+
+            // جعل نقطة الارتكاز تتحرك مع صباعك بسلاسة مريحة جداً
+            lastInputX = e.clientX;
+            lastInputY = e.clientY;
+        }
     });
 
-    // لما تشيل صباعك عن الشاشة
+    // عند رفع الصباع
     window.addEventListener("pointerup", () => {
-        isPointerDown = false;
+        isDragging = false;
+    });
+    window.addEventListener("pointercancel", () => {
+        isDragging = false;
     });
 
     function draw() {
@@ -126,16 +137,8 @@
 
         let centerX = canvas.width / 2;
         let centerY = canvas.height / 2;
-        
-        // الحسابات الأصلية المطيعة والسلسة جداً
-        let dy = targetY - centerY;
-        let dx = targetX - centerX;
-        
-        // التعبان بيلف فوراً لو المسافة واضحة
-        if (Math.hypot(dx, dy) > 10) {
-            snakeAngle = Math.atan2(dy, dx);
-        }
 
+        // التعبان مكمل في طريقه وزاويته بثبات مستني توجيهك الجديد
         snakeX += Math.cos(snakeAngle) * speed;
         snakeY += Math.sin(snakeAngle) * speed;
 
