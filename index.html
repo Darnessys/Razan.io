@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تحدي التعبان البركاني المضيء 360° 🌋✨</title>
+    <title>RazSlither.io 🐍✨</title>
     <style>
         * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
             overflow: hidden;
-            background: #09090b; /* خلفية شديدة السواد لزيادة تباين النيون */
+            background: #09090b; 
             font-family: 'Segoe UI', sans-serif;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: none;
+            
+            /* 🌟 الحل النهائي والوحيد لقفل ريفريش المتصفح عند السحب لتحت */
+            overscroll-behavior-y: contain; 
+            touch-action: none; 
         }
         
         .ui-layer {
@@ -25,7 +28,7 @@
             text-align: center;
             pointer-events: none;
         }
-        h2 { margin: 0; color: #ff7675; font-size: 1.3rem; text-shadow: 0 2px 8px rgba(255, 118, 117, 0.4); }
+        h2 { margin: 0; color: #ff7675; font-size: 1.4rem; text-shadow: 0 2px 8px rgba(255, 118, 117, 0.4); }
         .score-board { font-size: 1.1rem; color: #ffeaa7; font-weight: bold; }
 
         canvas {
@@ -38,7 +41,7 @@
 <body>
 
     <div class="ui-layer">
-        <h2>🔥 وحش الماجما البركاني المشع</h2>
+        <h2>RazSlither.io</h2>
         <div class="score-board">النقاط: <span id="score">0</span></div>
     </div>
 
@@ -58,7 +61,7 @@
     const WORLD_RADIUS = 1500; 
     const baseRadius = 9;          
     let currentRadius = baseRadius; 
-    const speed = 3;             
+    const speed = 3.5;             
     let score = 0;
     let isGameOver = false;
 
@@ -73,7 +76,7 @@
     }
 
     let foods = [];
-    for(let i=0; i<200; i++) {
+    for(let i=0; i<50; i++) {
         spawnFood();
     }
 
@@ -87,30 +90,48 @@
         });
     }
 
+    // المتغيرات الأصلية للحركة المطيعة ورا الماوس
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
+    let isPointerDown = false; // لمتابعة هل صباعك على الشاشة ولا متشال
 
-    window.addEventListener("pointerdown", updateTarget);
-    window.addEventListener("pointermove", updateTarget);
+    // لما تلمس الشاشة لأول مرة
+    window.addEventListener("pointerdown", (e) => {
+        isPointerDown = true;
+        // 🌟 السحر هنا: بنقول للعبة اعتبري مكان التعبان الحالي هو السنتر، عشان ما ينطش فجأة لمكان صباعك الجديد
+        targetX = window.innerWidth / 2;
+        targetY = window.innerHeight / 2;
+    });
 
-    function updateTarget(e) {
+    // الحركة ورا الماوس أو اللمس بسلاسة 100%
+    window.addEventListener("pointermove", (e) => {
+        // لو مش دايس (في الموبايل مثلاً شلت صباعك) ما يغيرش الأهداف ويفضل ماشي في حاله
+        if (!isPointerDown && e.pointerType === 'touch') return; 
+        
         targetX = e.clientX;
         targetY = e.clientY;
-    }
+    });
+
+    // لما تشيل صباعك عن الشاشة
+    window.addEventListener("pointerup", () => {
+        isPointerDown = false;
+    });
 
     function draw() {
         if (isGameOver) return;
 
-        pulseTime += 0.1; // سرعة نبض النار
-
+        pulseTime += 0.1; 
         ctx.fillStyle = "#0c0c0e";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         let centerX = canvas.width / 2;
         let centerY = canvas.height / 2;
+        
+        // الحسابات الأصلية المطيعة والسلسة جداً
         let dy = targetY - centerY;
         let dx = targetX - centerX;
         
+        // التعبان بيلف فوراً لو المسافة واضحة
         if (Math.hypot(dx, dy) > 10) {
             snakeAngle = Math.atan2(dy, dx);
         }
@@ -134,7 +155,7 @@
                 foods.splice(i, 1); 
                 score++;
                 document.getElementById("score").innerText = score;
-                currentRadius += 0.02; 
+                currentRadius += 0.12; 
                 spawnFood(); 
                 for (let k = 0; k < 5; k++) {
                     snake.push({ x: snake[snake.length - 1].x, y: snake[snake.length - 1].y });
@@ -148,7 +169,6 @@
         ctx.save();
         ctx.translate(offsetX, offsetY); 
         
-        // رسم حدود الملعب بلون ناري مضيء
         ctx.strokeStyle = "#ff4757";
         ctx.lineWidth = 6;
         ctx.shadowBlur = 15;
@@ -156,9 +176,8 @@
         ctx.beginPath();
         ctx.arc(0, 0, WORLD_RADIUS, 0, 2 * Math.PI);
         ctx.stroke();
-        ctx.shadowBlur = 0; // إلغاء التوهج للشبكة
+        ctx.shadowBlur = 0; 
 
-        // الحقول البركانية الخلفية
         ctx.strokeStyle = "rgba(255, 69, 0, 0.03)";
         ctx.lineWidth = 1;
         for (let x = -WORLD_RADIUS; x < WORLD_RADIUS; x += 60) {
@@ -168,7 +187,6 @@
             ctx.beginPath(); ctx.moveTo(-WORLD_RADIUS, y); ctx.lineTo(WORLD_RADIUS, y); ctx.stroke();
         }
 
-        // رسم قطع جمر الطاقة
         for (let f of foods) {
             ctx.fillStyle = f.color;
             ctx.beginPath();
@@ -176,7 +194,6 @@
             ctx.fill();
         }
 
-        // 🌋 رسم التعبان فائق الإضاءة والتوهج
         for (let i = 0; i < snake.length; i++) {
             let radius = currentRadius;
             if (i > snake.length - 4) {
@@ -184,31 +201,24 @@
                 radius = currentRadius * (tailIndex / 4);
             }
 
-            // حركة تموج ناري ديناميكي
             let wave = Math.abs(Math.sin(pulseTime + (i * 0.25)));
-            // دمج لون أحمر مع أصفر ناصع لتشكيل البركان المضيء
             let lavaColor = `rgb(255, ${Math.floor(60 + wave * 140)}, 0)`;
 
-            // تفعيل سحر التوهج (Glow Effect) لجسم التعبان
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 20;
             ctx.shadowColor = lavaColor;
 
-            // 1. الطبقة المضيئة الكبرى (اللافا السايحة المشعة)
             ctx.fillStyle = lavaColor;
             ctx.beginPath();
             ctx.arc(snake[i].x, snake[i].y, radius, 0, 2 * Math.PI);
             ctx.fill();
 
-            // إغلاق التوهج عما بداخل الكرات عشان اللعبة ما تبقاش بطيئة
             ctx.shadowBlur = 0;
 
-            // 2. الطبقة الداخلية (عروق الصخور السوداء المتفحمة بداخل النار)
             ctx.fillStyle = (i === 0) ? "#2d3436" : "rgba(25, 25, 30, 0.85)";
             ctx.beginPath();
             ctx.arc(snake[i].x, snake[i].y, Math.max(1, radius * 0.6), 0, 2 * Math.PI);
             ctx.fill();
 
-            // 3. عيون النيون الصفراء الفاقعة في الرأس
             if (i === 0) {
                 ctx.fillStyle = "#fff200";
                 ctx.beginPath();
