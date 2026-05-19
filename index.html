@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RazSlither.io 🐍✨</title>
+    <title>Razan.io 🐍✨</title>
     <style>
         * { box-sizing: border-box; }
         body, html {
@@ -39,7 +39,7 @@
 <body>
 
     <div class="ui-layer">
-        <h2>RazSlither.io</h2>
+        <h2>Razan.io</h2>
         <div class="score-board">النقاط: <span id="score">0</span></div>
     </div>
 
@@ -59,7 +59,7 @@
     const WORLD_RADIUS = 1500; 
     const baseRadius = 9;          
     let currentRadius = baseRadius; 
-    const speed = 3.5;             
+    const speed = 3;             
     let score = 0;
     let isGameOver = false;
 
@@ -74,7 +74,7 @@
     }
 
     let foods = [];
-    for(let i=0; i<50; i++) {
+    for(let i=0; i<250; i++) {
         spawnFood();
     }
 
@@ -211,7 +211,7 @@
             let wave = Math.abs(Math.sin(pulseTime + (i * 0.25)));
             let lavaColor = `rgb(255, ${Math.floor(60 + wave * 140)}, 0)`;
 
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 10;
             ctx.shadowColor = lavaColor;
 
             ctx.fillStyle = lavaColor;
