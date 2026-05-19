@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RazSlither.io - Bot Edition 🐍🤖</title>
+    <title>RazSlither.io 🐍✨</title>
     <style>
         * { box-sizing: border-box; }
         body, html {
@@ -39,7 +39,7 @@
 <body>
 
     <div class="ui-layer">
-        <h2>RazSlither.io (تحدي البوتات 🤖)</h2>
+        <h2>RazSlither.io</h2>
         <div class="score-board">النقاط: <span id="score">0</span></div>
     </div>
 
@@ -63,7 +63,6 @@
     let score = 0;
     let isGameOver = false;
 
-    // تعبان اللاعب الأصلي
     let snakeX = 0;
     let snakeY = 0;
     let snakeAngle = 0; 
@@ -74,9 +73,10 @@
         snake.push({ x: -i * 2, y: 0 });
     }
 
-    // التفاح والأكل
     let foods = [];
-    for(let i=0; i<250; i++) { spawnFood(); }
+    for(let i=0; i<250; i++) {
+        spawnFood();
+    }
 
     function spawnFood() {
         let ang = Math.random() * Math.PI * 2;
@@ -88,52 +88,6 @@
         });
     }
 
-    // 🤖 مصفوفة التعابين الآلية (Bots)
-    let bots = [];
-    const botColors = ["#00cec9", "#6c5ce7", "#00b894"]; // ألوان البوتات (أزرق، بنفسجي، أخضر)
-    
-    for (let i = 0; i < 3; i++) {
-        spawnBot(i);
-    }
-
-    function spawnBot(index) {
-        let ang = Math.random() * Math.PI * 2;
-        let r = Math.random() * (WORLD_RADIUS - 200);
-        let bx = Math.cos(ang) * r;
-        let by = Math.sin(ang) * r;
-        let bAngle = Math.random() * Math.PI * 2;
-        
-        let bBody = [];
-        for (let j = 0; j < 35; j++) {
-            bBody.push({ x: bx - j * 2, y: by });
-        }
-        
-        bots[index] = {
-            id: index,
-            x: bx,
-            y: by,
-            angle: bAngle,
-            body: bBody,
-            color: botColors[index],
-            radius: baseRadius,
-            changeDirTimer: 0
-        };
-    }
-
-    // تحويل التعبان الميت لأكل مكثف فوري
-    function explodeToFood(bodyPoints) {
-        for (let p of bodyPoints) {
-            if (Math.random() > 0.3) { // مش كل النقاط عشان الزحمة، بس أغلبها
-                foods.push({
-                    x: p.x + (Math.random() * 10 - 5),
-                    y: p.y + (Math.random() * 10 - 5),
-                    color: "#ffeaa7" // أكل دهبي مميز ومغذي جداً!
-                });
-            }
-        }
-    }
-
-    // 🕹️ تحكم الـ Joystick الخفي السلس
     let isTouching = false;
     let joyStartX = 0; 
     let joyStartY = 0; 
@@ -147,12 +101,14 @@
 
     window.addEventListener("pointermove", (e) => {
         if (!isTouching) return;
+
         let dx = e.clientX - joyStartX;
         let dy = e.clientY - joyStartY;
         let distance = Math.hypot(dx, dy);
 
         if (distance > 5) {
             snakeAngle = Math.atan2(dy, dx);
+
             if (distance > MAX_JOY_RADIUS) {
                 let angle = Math.atan2(dy, dx);
                 joyStartX = e.clientX - Math.cos(angle) * MAX_JOY_RADIUS;
@@ -174,9 +130,9 @@
         let centerX = canvas.width / 2;
         let centerY = canvas.height / 2;
 
-        // --- 1. تحديث حركة اللاعب الأصلي ---
         snakeX += Math.cos(snakeAngle) * speed;
         snakeY += Math.sin(snakeAngle) * speed;
+
         snake.unshift({ x: snakeX, y: snakeY });
         snake.pop(); 
 
@@ -187,57 +143,8 @@
             return;
         }
 
-        // --- 2. تحديث حركة الـ Bots ذكاء اصطناعي ---
-        for (let b of bots) {
-            b.changeDirTimer++;
-            // البوت يغير اتجاهه كل فترة بشكل عشوائي ناعم عشان يدور على الأكل
-            if (b.changeDirTimer > 100 + Math.random() * 100) {
-                b.angle += (Math.random() * 2 - 1); 
-                b.changeDirTimer = 0;
-            }
-
-            b.x += Math.cos(b.angle) * (speed * 0.85); // أبطأ سنة من اللاعب عشان العدل
-            b.y += Math.sin(b.angle) * (speed * 0.85);
-            b.body.unshift({ x: b.x, y: b.y });
-            b.body.pop();
-
-            // لو البوت خرج بره الخريطة يرجع تاني
-            if (Math.hypot(b.x, b.y) > WORLD_RADIUS) {
-                spawnBot(b.id);
-            }
-        }
-
-        // --- 3. نظام التصادم والموت (Collision System) ---
-        // أ) هل رأس اللاعب خبطت في جسم أي بوت؟
-        for (let b of bots) {
-            // بنبدأ من العنصر رقم 3 في الجسم عشان ما يخبطش في رقبته
-            for (let j = 3; j < b.body.length; j++) {
-                if (Math.hypot(snakeX - b.body[j].x, snakeY - b.body[j].y) < (currentRadius + b.radius - 2)) {
-                    isGameOver = true;
-                    alert("🚨 مراتي هتكسبك كدة! خبطت في البوت ومُت! نقاطك: " + score);
-                    location.reload();
-                    return;
-                }
-            }
-        }
-
-        // ب) هل رأس البوت خبطت في جسم اللاعب؟ (هنا الصيد المتين!)
-        for (let b of bots) {
-            for (let j = 3; j < snake.length; j++) {
-                if (Math.hypot(b.x - snake[j].x, b.y - snake[j].y) < (b.radius + currentRadius - 2)) {
-                    explodeToFood(b.body); // البوت يتفجر أكل!
-                    spawnBot(b.id); // يولد بوت جديد في مكان تاني
-                    score += 15; // مكافأة قتل البوت
-                    document.getElementById("score").innerText = score;
-                }
-            }
-        }
-
-        // --- 4. التقاط الأكل (اللاعب + البوتات) ---
         for (let i = foods.length - 1; i >= 0; i--) {
             let f = foods[i];
-            
-            // اللاعب يأكل
             if (Math.hypot(snakeX - f.x, snakeY - f.y) < (currentRadius + 6)) {
                 foods.splice(i, 1); 
                 score++;
@@ -247,39 +154,24 @@
                 for (let k = 0; k < 5; k++) {
                     snake.push({ x: snake[snake.length - 1].x, y: snake[snake.length - 1].y });
                 }
-                continue;
-            }
-
-            // البوتات تأكل وتكبر برضه!
-            for (let b of bots) {
-                if (Math.hypot(b.x - f.x, b.y - f.y) < (b.radius + 6)) {
-                    foods.splice(i, 1);
-                    b.radius += 0.05; // البوت بيكبر بس أبطأ شوية
-                    spawnFood();
-                    b.body.push({ x: b.body[b.body.length-1].x, y: b.body[b.body.length-1].y });
-                    break;
-                }
             }
         }
 
-        // --- 5. الررررررسم على الكانفاس ---
         let offsetX = centerX - snakeX;
         let offsetY = centerY - snakeY;
 
         ctx.save();
         ctx.translate(offsetX, offsetY); 
         
-        // رسم السور الخارجي
         ctx.strokeStyle = "#ff4757";
         ctx.lineWidth = 6;
-        ctx.shadowBlur = 10; 
+        ctx.shadowBlur = 10; // السور هادي
         ctx.shadowColor = "#ff4757";
         ctx.beginPath();
         ctx.arc(0, 0, WORLD_RADIUS, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.shadowBlur = 0; 
 
-        // رسم الشبكة الخلفية
         ctx.strokeStyle = "rgba(255, 69, 0, 0.03)";
         ctx.lineWidth = 1;
         for (let x = -WORLD_RADIUS; x < WORLD_RADIUS; x += 60) {
@@ -289,7 +181,6 @@
             ctx.beginPath(); ctx.moveTo(-WORLD_RADIUS, y); ctx.lineTo(WORLD_RADIUS, y); ctx.stroke();
         }
 
-        // رسم الأكل
         for (let f of foods) {
             ctx.fillStyle = f.color;
             ctx.beginPath();
@@ -297,31 +188,10 @@
             ctx.fill();
         }
 
-        // رسم البوتات (الآليين)
-        for (let b of bots) {
-            for (let i = 0; i < b.body.length; i++) {
-                let r = (i === 0) ? b.radius * 1.2 : b.radius;
-                ctx.fillStyle = b.color;
-                ctx.beginPath();
-                ctx.arc(b.body[i].x, b.body[i].y, r, 0, 2 * Math.PI);
-                ctx.fill();
-
-                // عيون البوتات عشان يبانوا باصين فين
-                if (i === 0) {
-                    ctx.save();
-                    ctx.translate(b.body[i].x, b.body[i].y);
-                    ctx.rotate(b.angle);
-                    ctx.fillStyle = "#ffffff";
-                    ctx.beginPath(); ctx.arc(r*0.3, -r*0.4, r*0.25, 0, 2*Math.PI); ctx.fill();
-                    ctx.beginPath(); ctx.arc(r*0.3, r*0.4, r*0.25, 0, 2*Math.PI); ctx.fill();
-                    ctx.restore();
-                }
-            }
-        }
-
-        // رسم تعبان اللاعب الرئيسي (مع تأثير التوهج 10 الرايق)
         for (let i = 0; i < snake.length; i++) {
+            // جعل كورة الرأس (i=0) أكبر شوية من الجسم لإبرازها
             let radius = (i === 0) ? currentRadius * 1.2 : currentRadius;
+            
             if (i > snake.length - 4) {
                 let tailIndex = snake.length - i;
                 radius = currentRadius * (tailIndex / 4);
@@ -330,7 +200,7 @@
             let wave = Math.abs(Math.sin(pulseTime + (i * 0.25)));
             let lavaColor = `rgb(255, ${Math.floor(60 + wave * 140)}, 0)`;
 
-            ctx.shadowBlur = 10; 
+            ctx.shadowBlur = 10; // التوهج هادي ومريح (10) بناءً على طلبك
             ctx.shadowColor = lavaColor;
 
             ctx.fillStyle = lavaColor;
@@ -345,7 +215,7 @@
             ctx.arc(snake[i].x, snake[i].y, Math.max(1, radius * 0.6), 0, 2 * Math.PI);
             ctx.fill();
 
-            // رسم العيون التفاعلية في رأس اللاعب
+            // 🌟 رسم العيون الأسطورية التفاعلية في الرأس
             if (i === 0) {
                 ctx.save();
                 ctx.translate(snake[i].x, snake[i].y);
@@ -353,15 +223,23 @@
 
                 // العين اليمين
                 ctx.fillStyle = "#ffffff";
-                ctx.beginPath(); ctx.arc(radius * 0.3, -radius * 0.4, radius * 0.25, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath();
+                ctx.arc(radius * 0.3, -radius * 0.4, radius * 0.25, 0, 2 * Math.PI);
+                ctx.fill();
                 ctx.fillStyle = "#000000";
-                ctx.beginPath(); ctx.arc(radius * 0.38, -radius * 0.4, radius * 0.12, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath();
+                ctx.arc(radius * 0.38, -radius * 0.4, radius * 0.12, 0, 2 * Math.PI);
+                ctx.fill();
 
                 // العين الشمال
                 ctx.fillStyle = "#ffffff";
-                ctx.beginPath(); ctx.arc(radius * 0.3, radius * 0.4, radius * 0.25, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath();
+                ctx.arc(radius * 0.3, radius * 0.4, radius * 0.25, 0, 2 * Math.PI);
+                ctx.fill();
                 ctx.fillStyle = "#000000";
-                ctx.beginPath(); ctx.arc(radius * 0.38, radius * 0.4, radius * 0.12, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath();
+                ctx.arc(radius * 0.38, radius * 0.4, radius * 0.12, 0, 2 * Math.PI);
+                ctx.fill();
 
                 ctx.restore();
             }
